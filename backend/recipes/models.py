@@ -30,7 +30,8 @@ class Recipe(models.Model):
     is_in_shopping_cart = models.BooleanField(default=False)
     image = models.ImageField(
         'Photo',
-        upload_to='recipe_images'
+        upload_to='recipe_images',
+        default=None
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
