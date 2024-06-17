@@ -3,7 +3,9 @@ import base64
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from rest_framework import serializers
-from recipes.models import Tag, Ingredient, Recipe
+from recipes.models import (
+    Tag, Ingredient, Recipe, IngredientRecipe, TagRecipe
+)
 
 User = get_user_model()
 
@@ -65,8 +67,127 @@ class IngredientSerializer(serializers.ModelSerializer):
         )
 
 
-class RecipeSerializer(serializers.ModelSerializer):
+class IngredientRecipeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
+    class Meta:
+        model = IngredientRecipe
+        fields = ('id', 'amount')
+
+
+class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
+    ingredients = IngredientRecipeSerializer(
+        many=True
+    )
+    tags = serializers.ListField(
+        child=serializers.IntegerField()
+    )
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'ingredients',
+            'tags',
+            'image',
+            'name',
+            'text',
+            'cooking_time'
+        )
+
+    def validate(self, attrs):
+        if len(self.fields) != len(attrs):
+            raise serializers.ValidationError('Required field missing.')
+        errors_dict = {}
+        if attrs['cooking_time'] < 1:
+            errors_dict['cooking_time'] = 'Cooking_time must be positive.'
+        if not attrs['ingredients']:
+            errors_dict['ingredients'] = 'Empty ingredients field.'
+        else:
+            ingredients = attrs.get('ingredients')
+            ingredient_pks = [ingredient['id'] for ingredient in ingredients]
+            if len(ingredients) != len(set(ingredient_pks)):
+                errors_dict['ingredients'] = 'Repeated ingredients.'
+            for ingredient in ingredients:
+                if ingredient['amount'] < 1:
+                    errors_dict['ingredients'] = (
+                        'Ingredient amount less than 1.'
+                    )
+                ingredient_id = ingredient['id']
+                if not Ingredient.objects.filter(pk=ingredient_id).exists():
+                    errors_dict['ingredients'] = (
+                        f'Unexisting ingredient {ingredient_id}.'
+                    )
+        if not attrs['tags']:
+            errors_dict['tags'] = 'Empty tags field.'
+        else:
+            tags = attrs.get('tags')
+            if len(tags) != len(set(tags)):
+                errors_dict['tags'] = 'Repeated tags.'
+            for tag in tags:
+                if not Tag.objects.filter(pk=tag).exists():
+                    errors_dict['tags'] = f'Unexisting tag {tag}.'
+        if errors_dict:
+            raise serializers.ValidationError(errors_dict)
+        return attrs
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+
+        for ingredient in ingredients:
+            current_ingredient = Ingredient.objects.get(pk=ingredient['id'])
+            IngredientRecipe.objects.create(
+                ingredient=current_ingredient,
+                recipe=recipe,
+                amount=ingredient['amount']
+            )
+        for tag in tags:
+            current_tag = Tag.objects.get(pk=tag)
+            TagRecipe.objects.create(
+                recipe=recipe,
+                tag=current_tag
+            )
+        return recipe
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get(
+            'cooking_time',
+            instance.cooking_time
+        )
+        instance.image = validated_data.get('image', instance.image)
+
+        ingredients_data = validated_data.pop('ingredients')
+        lst = []
+        for ingredient in ingredients_data:
+            current_ingredient = Ingredient.objects.get(
+                pk=ingredient['id']
+            )
+            lst.append(current_ingredient)
+        instance.ingredients.set(lst)
+
+        tags_data = validated_data.pop('tags')
+        lst = []
+        for tag in tags_data:
+            current_tag = Tag.objects.get(pk=tag)
+            lst.append(current_tag)
+        instance.tags.set(lst)
+
+        instance.save()
+        return instance
+
+    def to_representation(self, instance):
+        serializer = RecipeReadSerializer(instance)
+        return serializer.data
+
+
+class RecipeReadSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+    ingredients = serializers.SerializerMethodField()
+    tags = TagSerializer(many=True)
 
     class Meta:
         model = Recipe
@@ -82,3 +203,16 @@ class RecipeSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time'
         )
+
+    def get_ingredients(self, obj):
+        recipe_ingredients = IngredientRecipe.objects.filter(recipe=obj)
+        return [
+            {
+                'id': recipe_ingredient.ingredient.id,
+                'name': recipe_ingredient.ingredient.name,
+                'measurement_unit':
+                recipe_ingredient.ingredient.measurement_unit,
+                'amount': recipe_ingredient.amount
+            }
+            for recipe_ingredient in recipe_ingredients
+        ]

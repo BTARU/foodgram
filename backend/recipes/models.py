@@ -18,12 +18,12 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, unique=True)
     measurement_unit = models.CharField(max_length=64)
 
 
 class Recipe(models.Model):
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=256)
     text = models.TextField()
     cooking_time = models.PositiveSmallIntegerField()
     is_favorited = models.BooleanField(default=False)
@@ -43,7 +43,10 @@ class Recipe(models.Model):
         related_name='recipes_author',
         verbose_name='Recipe author',
     )
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(
+        Tag,
+        through='TagRecipe'
+    )
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientRecipe'
@@ -51,6 +54,11 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ('-created_at',)
+
+
+class TagRecipe(models.Model):
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
 
 
 class IngredientRecipe(models.Model):
