@@ -13,7 +13,7 @@ from .serializers import (
     UserSerializer, TagSerializer, IngredientSerializer, AvatarSerializer,
     RecipeCreateSerializer, RecipeReadSerializer
 )
-from recipes.models import Tag, Ingredient, Recipe
+from recipes.models import Tag, Ingredient, Recipe, UserFavoriteRecipes
 from .permissions import IsAuthorOrAdmin
 
 User = get_user_model()
@@ -39,7 +39,7 @@ class UserViewSet(
 
     @action(detail=False, permission_classes=[IsAuthenticated])
     def me(self, request):
-        user = self.request.user
+        user = request.user
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
@@ -47,8 +47,8 @@ class UserViewSet(
     def set_password(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            self.request.user.set_password(serializer.data["new_password"])
-            self.request.user.save()
+            request.user.set_password(serializer.data["new_password"])
+            request.user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -61,7 +61,7 @@ class UserViewSet(
     def avatar(self, request):
         if request.method == 'PUT':
             serializer = self.get_serializer(
-                self.request.user, data=request.data, partial=True)
+                request.user, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -69,10 +69,10 @@ class UserViewSet(
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if request.method == 'DELETE':
-            self.request.user.avatar = None
-            self.request.user.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        # if request.method == 'DELETE':
+        request.user.avatar = None
+        request.user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -127,5 +127,54 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(
             {
                 'short-link': f'https://{host}/s/{short_url}'
-            }
+            },
+            status=status.HTTP_200_OK
         )
+
+    @action(
+        ['post', 'delete'],
+        detail=False,
+        url_path=r'(?P<recipe_id>\d+)/favorite'
+    )
+    def favorite(self, request, recipe_id):
+        recipe = get_object_or_404(Recipe, pk=recipe_id)
+        favorite_recipe_check = UserFavoriteRecipes.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).exists()
+        if request.method == 'POST':
+            if favorite_recipe_check:
+                return Response(
+                    {
+                        'detail': 'Recipe already in favorites.'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            UserFavoriteRecipes.objects.create(
+                user=request.user,
+                recipe=recipe
+            )
+            host = request.get_host()
+            return Response(
+                {
+                    'id': recipe.id,
+                    'name': recipe.name,
+                    'image': f'https://{host}{recipe.image.url}',
+                    'cooking_time': recipe.cooking_time
+                },
+                status=status.HTTP_201_CREATED
+            )
+        # if request.method == 'DELETE':
+        if not favorite_recipe_check:
+            return Response(
+                {
+                    'detail': 'Recipe not in favorites.'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        UserFavoriteRecipes.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
