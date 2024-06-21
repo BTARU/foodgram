@@ -3,9 +3,6 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
-    is_subscribed = models.BooleanField(
-        default=False,
-    )
     avatar = models.ImageField(
         null=True,
         upload_to='user_avatars',
@@ -36,3 +33,16 @@ class CustomUser(AbstractUser):
 
     def __str__(self) -> str:
         return self.username
+
+
+class Subscription(models.Model):
+    subscriber = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='subscriptions'
+    )
+    subscribe_target = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='followers'
+    )

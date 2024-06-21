@@ -11,9 +11,11 @@ from rest_framework.permissions import (
 from urlshortner.utils import shorten_url
 from .serializers import (
     UserSerializer, TagSerializer, IngredientSerializer, AvatarSerializer,
-    RecipeCreateSerializer, RecipeReadSerializer
+    RecipeCreateSerializer, RecipeReadSerializer, RecipeShortInfoSerializer,
+    UserSubscriptionSerializer
 )
 from recipes.models import Tag, Ingredient, Recipe, UserFavoriteRecipes
+from users.models import Subscription
 from .permissions import IsAuthorOrAdmin
 
 User = get_user_model()
@@ -35,6 +37,8 @@ class UserViewSet(
             return SetPasswordSerializer
         elif self.action == 'avatar':
             return AvatarSerializer
+        elif self.action in ('subscribe', 'subscriptions'):
+            return UserSubscriptionSerializer
         return UserSerializer
 
     @action(detail=False, permission_classes=[IsAuthenticated])
@@ -73,6 +77,73 @@ class UserViewSet(
         request.user.avatar = None
         request.user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        ['get'],
+        detail=False,
+        permission_classes=[IsAuthenticated],
+    )
+    def subscriptions(self, request):
+        queryset = request.user.subscriptions.all()
+        queryset = [sub.subscribe_target for sub in queryset]
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+    @action(
+        ['post', 'delete'],
+        detail=False,
+        permission_classes=[IsAuthenticated],
+        url_path=r'(?P<user_id>\d+)/subscribe'
+    )
+    def subscribe(self, request, user_id):
+        sub_user = get_object_or_404(User, pk=user_id)
+        errors_dict = {}
+        is_subscribed = Subscription.objects.filter(
+            subscriber=request.user,
+            subscribe_target=sub_user
+        ).exists()
+        if request.method == 'POST':
+            if request.user == sub_user:
+                errors_dict['detail'] = 'Cant subscribe on yourself.'
+            elif is_subscribed:
+                errors_dict['detail'] = 'Already subscribed on that user.'
+            if errors_dict:
+                return Response(
+                    errors_dict,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            serializer = self.get_serializer(instance=sub_user)
+            Subscription.objects.create(
+                subscriber=request.user,
+                subscribe_target=sub_user
+            )
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        # if request.method == 'DELETE'
+        if not is_subscribed:
+            return Response(
+                {
+                    'detail': 'Not subscribed on that user.'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        Subscription.objects.filter(
+            subscriber=request.user,
+            subscribe_target=sub_user
+        ).delete()
+        return Response(
+            status=status.HTTP_204_NO_CONTENT
+        )
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -155,14 +226,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 recipe=recipe
             )
-            host = request.get_host()
+            serializer = RecipeShortInfoSerializer(instance=recipe)
+            m_data = serializer.data
+            m_data['image'] = request.build_absolute_uri(recipe.image.url)
             return Response(
-                {
-                    'id': recipe.id,
-                    'name': recipe.name,
-                    'image': f'https://{host}{recipe.image.url}',
-                    'cooking_time': recipe.cooking_time
-                },
+                m_data,
                 status=status.HTTP_201_CREATED
             )
         # if request.method == 'DELETE':
