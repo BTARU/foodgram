@@ -1,3 +1,6 @@
+import csv
+
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, SetPasswordSerializer
@@ -14,7 +17,9 @@ from .serializers import (
     RecipeCreateSerializer, RecipeReadSerializer, RecipeShortInfoSerializer,
     UserSubscriptionSerializer
 )
-from recipes.models import Tag, Ingredient, Recipe, UserFavoriteRecipes
+from recipes.models import (
+    Tag, Ingredient, Recipe, UserFavoriteRecipes, UserRecipeShoppingCart
+)
 from users.models import Subscription
 from .permissions import IsAuthorOrAdmin
 
@@ -65,7 +70,8 @@ class UserViewSet(
     def avatar(self, request):
         if request.method == 'PUT':
             serializer = self.get_serializer(
-                request.user, data=request.data, partial=True)
+                instance=request.user, data=request.data
+            )
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -120,11 +126,11 @@ class UserViewSet(
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            serializer = self.get_serializer(instance=sub_user)
             Subscription.objects.create(
                 subscriber=request.user,
                 subscribe_target=sub_user
             )
+            serializer = self.get_serializer(sub_user)
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED
@@ -183,6 +189,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
             tags = params.getlist('tags')
             for tag in tags:
                 queryset = queryset.filter(tags__slug=tag)
+
+        user = self.request.user
+        if 'is_in_shopping_cart' in params and user.is_authenticated:
+            recipes_in_shop_cart = user.user_shopping_cart_recipes.all()
+            for obj in recipes_in_shop_cart:
+                queryset = queryset.filter(id=obj.recipe.id)
+
+        if 'is_favorited' in params and user.is_authenticated:
+            favorite_recipes = user.user_favorite_recipes.all()
+            for obj in favorite_recipes:
+                queryset = queryset.filter(id=obj.recipe.id)
         return queryset
 
     @action(
@@ -226,11 +243,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 recipe=recipe
             )
-            serializer = RecipeShortInfoSerializer(instance=recipe)
-            m_data = serializer.data
-            m_data['image'] = request.build_absolute_uri(recipe.image.url)
+            serializer = RecipeShortInfoSerializer(
+                recipe,
+                context={'request': request}
+            )
             return Response(
-                m_data,
+                serializer.data,
                 status=status.HTTP_201_CREATED
             )
         # if request.method == 'DELETE':
@@ -246,3 +264,85 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe=recipe
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        ['post', 'delete'],
+        detail=False,
+        url_path=r'(?P<recipe_id>\d+)/shopping_cart'
+    )
+    def shopping_cart(self, request, recipe_id):
+        recipe = get_object_or_404(Recipe, pk=recipe_id)
+        shopping_cart_recipe_check = UserRecipeShoppingCart.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).exists()
+        if request.method == 'POST':
+            if shopping_cart_recipe_check:
+                return Response(
+                    {
+                        'detail': 'Recipe already in shopping cart.'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            UserRecipeShoppingCart.objects.create(
+                user=request.user,
+                recipe=recipe
+            )
+            serializer = RecipeShortInfoSerializer(
+                recipe,
+                context={'request': request}
+            )
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        # if request.method == 'DELETE':
+        if not shopping_cart_recipe_check:
+            return Response(
+                {
+                    'detail': 'Recipe not in shopping cart.'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        UserRecipeShoppingCart.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        ['get'],
+        detail=False,
+        permission_classes=[IsAuthenticated],
+    )
+    def download_shopping_cart(self, request):
+        queryset = request.user.user_shopping_cart_recipes.all()
+        queryset = [user_shop_cart.recipe for user_shop_cart in queryset]
+        ingredient_list = {}
+        serializer = self.get_serializer(queryset, many=True)
+        response = HttpResponse(
+            content_type='text/csv',
+            headers={
+                'Content-Disposition':
+                'attachment; filename="shopping_list.csv"'
+            },
+        )
+
+        for recipe in serializer.data:
+            for ingredient in recipe.get('ingredients'):
+                ingredient_name = ingredient.get('name')
+                if ingredient_name not in ingredient_list:
+                    ingredient_list[ingredient_name] = [
+                        ingredient.get('measurement_unit'),
+                        ingredient.get('amount')
+                    ]
+                else:
+                    ingredient_list[ingredient_name][1] += ingredient.get(
+                        'amount'
+                    )
+
+        writer = csv.writer(response)
+        for name, values in ingredient_list.items():
+            writer.writerow((name, values[0], values[1]))
+        return response

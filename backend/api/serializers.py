@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from recipes.models import (
-    Tag, Ingredient, Recipe, IngredientRecipe, TagRecipe
+    Tag, Ingredient, Recipe, IngredientRecipe, TagRecipe, UserFavoriteRecipes,
+    UserRecipeShoppingCart
 )
 from users.models import Subscription
 
@@ -25,7 +26,7 @@ class AvatarSerializer(serializers.Serializer):
     avatar = Base64ImageField()
 
     def update(self, instance, validated_data):
-        instance.avatar = validated_data.get('avatar', instance.avatar)
+        instance.avatar = validated_data.get('avatar')
         instance.save()
         return instance
 
@@ -183,7 +184,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return instance
 
     def to_representation(self, instance):
-        serializer = RecipeReadSerializer(instance)
+        serializer = RecipeReadSerializer(
+            instance,
+            context={'request': self.context['request']}
+        )
         return serializer.data
 
 
@@ -191,6 +195,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -220,8 +226,26 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             for recipe_ingredient in recipe_ingredients
         ]
 
+    def get_is_favorited(self, obj):
+        if self.context['request'].user.is_authenticated:
+            return UserFavoriteRecipes.objects.filter(
+                user=self.context['request'].user,
+                recipe=obj
+            ).exists()
+        return False
+
+    def get_is_in_shopping_cart(self, obj):
+        if self.context['request'].user.is_authenticated:
+            return UserRecipeShoppingCart.objects.filter(
+                user=self.context['request'].user,
+                recipe=obj
+            ).exists()
+        return False
+
 
 class RecipeShortInfoSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = Recipe
         fields = (
@@ -230,6 +254,9 @@ class RecipeShortInfoSerializer(serializers.ModelSerializer):
             'image',
             'cooking_time'
         )
+
+    def get_image(self, obj):
+        return self.context.get('request').build_absolute_uri(obj.image.url)
 
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):
@@ -261,5 +288,9 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
         queryset = Recipe.objects.filter(author=obj)
         if recipes_limit:
             queryset = queryset[:int(recipes_limit)]
-        serializer = RecipeShortInfoSerializer(queryset, many=True)
+        serializer = RecipeShortInfoSerializer(
+            queryset,
+            context={'request': self.context['request']},
+            many=True
+        )
         return serializer.data

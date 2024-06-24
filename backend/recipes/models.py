@@ -43,12 +43,6 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='cooking_time'
     )
-    is_favorited = models.BooleanField(
-        default=False
-    )
-    is_in_shopping_cart = models.BooleanField(
-        default=False
-    )
     image = models.ImageField(
         verbose_name='Photo',
         upload_to='recipe_images',
@@ -71,11 +65,6 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientRecipe'
-    )
-    favorite_recipes = models.ManyToManyField(
-        User,
-        through='UserFavoriteRecipes',
-        related_name='favorite_recipes'
     )
 
     class Meta:
@@ -114,6 +103,21 @@ class UserFavoriteRecipes(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name='User',
+        related_name='user_favorite_recipes'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Recipe'
+    )
+
+
+class UserRecipeShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='User',
+        related_name='user_shopping_cart_recipes'
     )
     recipe = models.ForeignKey(
         Recipe,
