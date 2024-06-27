@@ -1,27 +1,29 @@
+"""Foodgram api views."""
 import csv
 
-from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from djoser.serializers import UserCreateSerializer, SetPasswordSerializer
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status, mixins
+from djoser.serializers import SetPasswordSerializer, UserCreateSerializer
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.permissions import (
     AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 )
+from rest_framework.response import Response
 from urlshortner.utils import shorten_url
-from .serializers import (
-    UserSerializer, TagSerializer, IngredientSerializer, AvatarSerializer,
-    RecipeCreateSerializer, RecipeReadSerializer, RecipeShortInfoSerializer,
-    UserSubscriptionSerializer
-)
+
 from recipes.models import (
-    Tag, Ingredient, Recipe, UserFavoriteRecipes, UserRecipeShoppingCart
+    Ingredient, Recipe, Tag, UserFavoriteRecipes, UserRecipeShoppingCart
 )
 from users.models import Subscription
 from .permissions import IsAuthorOrAdmin
+from .serializers import (
+    AvatarSerializer, IngredientSerializer, RecipeCreateSerializer,
+    RecipeReadSerializer, RecipeShortInfoSerializer, TagSerializer,
+    UserSerializer, UserSubscriptionSerializer
+)
 
 User = get_user_model()
 
@@ -46,17 +48,24 @@ class UserViewSet(
             return UserSubscriptionSerializer
         return UserSerializer
 
-    @action(detail=False, permission_classes=[IsAuthenticated])
+    @action(
+        ['get'],
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
     def me(self, request):
-        user = request.user
-        serializer = self.get_serializer(user)
+        serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-    @action(['post'], detail=False, permission_classes=[IsAuthenticated])
+    @action(
+        ['post'],
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
     def set_password(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            request.user.set_password(serializer.data["new_password"])
+            request.user.set_password(serializer.data['new_password'])
             request.user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -74,7 +83,7 @@ class UserViewSet(
             )
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.data)
             return Response(
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
@@ -99,7 +108,6 @@ class UserViewSet(
         serializer = self.get_serializer(queryset, many=True)
         return Response(
             serializer.data,
-            status=status.HTTP_200_OK
         )
 
     @action(
@@ -160,7 +168,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Ingredient.objects.annotate().all()
+    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
     pagination_class = None
@@ -193,13 +201,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if 'is_in_shopping_cart' in params and user.is_authenticated:
             recipes_in_shop_cart = user.user_shopping_cart_recipes.all()
-            for obj in recipes_in_shop_cart:
-                queryset = queryset.filter(id=obj.recipe.id)
+            for user_recipe_in_shop_cart in recipes_in_shop_cart:
+                queryset = queryset.filter(
+                    id=user_recipe_in_shop_cart.recipe.id
+                )
 
         if 'is_favorited' in params and user.is_authenticated:
             favorite_recipes = user.user_favorite_recipes.all()
-            for obj in favorite_recipes:
-                queryset = queryset.filter(id=obj.recipe.id)
+            for user_favorite_recipe in favorite_recipes:
+                queryset = queryset.filter(
+                    id=user_favorite_recipe.recipe.id
+                )
         return queryset
 
     @action(
@@ -215,8 +227,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(
             {
                 'short-link': f'https://{host}/s/{short_url}'
-            },
-            status=status.HTTP_200_OK
+            }
         )
 
     @action(

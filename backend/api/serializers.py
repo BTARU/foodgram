@@ -1,8 +1,10 @@
+"""Foodgram api serializers."""
 import base64
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+
 from recipes.models import (
     Tag, Ingredient, Recipe, IngredientRecipe, TagRecipe, UserFavoriteRecipes,
     UserRecipeShoppingCart
@@ -109,19 +111,21 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             errors_dict['ingredients'] = 'Empty ingredients field.'
         else:
             ingredients = attrs.get('ingredients')
-            ingredient_pks = [ingredient['id'] for ingredient in ingredients]
-            if len(ingredients) != len(set(ingredient_pks)):
-                errors_dict['ingredients'] = 'Repeated ingredients.'
+            ingredient_ids = []
             for ingredient in ingredients:
                 if ingredient['amount'] < 1:
                     errors_dict['ingredients'] = (
                         'Ingredient amount less than 1.'
                     )
                 ingredient_id = ingredient['id']
+                if ingredient_id in ingredient_ids:
+                    errors_dict['ingredients'] = 'Repeated ingredients.'
+                ingredient_ids.append(ingredient_id)
                 if not Ingredient.objects.filter(pk=ingredient_id).exists():
                     errors_dict['ingredients'] = (
                         f'Unexisting ingredient {ingredient_id}.'
                     )
+
         if not attrs['tags']:
             errors_dict['tags'] = 'Empty tags field.'
         else:
@@ -215,16 +219,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_ingredients(self, obj):
         recipe_ingredients = IngredientRecipe.objects.filter(recipe=obj)
-        return [
-            {
-                'id': recipe_ingredient.ingredient.id,
-                'name': recipe_ingredient.ingredient.name,
-                'measurement_unit':
-                recipe_ingredient.ingredient.measurement_unit,
-                'amount': recipe_ingredient.amount
-            }
-            for recipe_ingredient in recipe_ingredients
-        ]
+        result = []
+        for recipe_ingredient in recipe_ingredients:
+            ingredient_data = IngredientSerializer(
+                recipe_ingredient.ingredient
+            ).data
+            ingredient_data['amount'] = recipe_ingredient.amount
+            result.append(ingredient_data)
+        return result
 
     def get_is_favorited(self, obj):
         if self.context['request'].user.is_authenticated:
