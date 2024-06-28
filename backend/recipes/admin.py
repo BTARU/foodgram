@@ -1,10 +1,8 @@
 """Admin panel settings for recipes app."""
 from django.contrib import admin
 
-from .models import (
-    Ingredient, IngredientRecipe, Recipe, Tag, UserFavoriteRecipes,
-    UserRecipeShoppingCart, TagRecipe
-)
+from .models import (Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe,
+                     UserFavoriteRecipes, UserRecipeShoppingCart)
 
 admin.site.empty_value_display = 'Not set'
 

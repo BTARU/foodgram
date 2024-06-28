@@ -2,13 +2,13 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from foodgram_backend.constants import (
-    TRUNCATE_AMOUNT, USER_EMAIL_LENGTH, USER_NAME_LENGTH
-)
+from foodgram_backend.constants import (TRUNCATE_AMOUNT, USER_EMAIL_LENGTH,
+                                        USER_NAME_LENGTH)
 
 
 class CustomUser(AbstractUser):
     """Foodgram user model."""
+
     avatar = models.ImageField(
         null=True,
         blank=True,
@@ -44,6 +44,7 @@ class CustomUser(AbstractUser):
 
 class Subscription(models.Model):
     """User to user subscription relational model."""
+
     subscriber = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
@@ -61,6 +62,6 @@ class Subscription(models.Model):
 
     def __str__(self) -> str:
         return (
-            self.subscriber.email[:TRUNCATE_AMOUNT] + ' ' +
-            self.subscribe_target.email[:TRUNCATE_AMOUNT]
+            self.subscriber.email[:TRUNCATE_AMOUNT] + ' '
+            + self.subscribe_target.email[:TRUNCATE_AMOUNT]
         )

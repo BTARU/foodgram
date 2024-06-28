@@ -2,15 +2,17 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from foodgram_backend.constants import (
-    TRUNCATE_AMOUNT, TAG_FIELD_MAX_LENGTH, INGREDIENT_NAME_LENGTH,
-    INGREDIENT_M_UNIT_LENGTH, RECIPE_NAME_LENGTH
-)
+from foodgram_backend.constants import (INGREDIENT_M_UNIT_LENGTH,
+                                        INGREDIENT_NAME_LENGTH,
+                                        RECIPE_NAME_LENGTH,
+                                        TAG_FIELD_MAX_LENGTH, TRUNCATE_AMOUNT)
+
 User = get_user_model()
 
 
 class Tag(models.Model):
     """Tag for recipe."""
+
     name = models.CharField(
         verbose_name='Name',
         max_length=TAG_FIELD_MAX_LENGTH
@@ -36,6 +38,7 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """Ingredient for recipe."""
+
     name = models.CharField(
         verbose_name='Name',
         max_length=INGREDIENT_NAME_LENGTH,
@@ -56,6 +59,7 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     """Main project model - cooking recipe."""
+
     name = models.CharField(
         verbose_name='Name',
         max_length=RECIPE_NAME_LENGTH
@@ -103,6 +107,7 @@ class Recipe(models.Model):
 
 class TagRecipe(models.Model):
     """Recipe and Tag relational model."""
+
     tag = models.ForeignKey(
         Tag,
         on_delete=models.CASCADE
@@ -122,6 +127,7 @@ class TagRecipe(models.Model):
 
 class IngredientRecipe(models.Model):
     """Recipe and Ingredient relational model."""
+
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
@@ -142,13 +148,14 @@ class IngredientRecipe(models.Model):
 
     def __str__(self) -> str:
         return (
-            self.recipe.name[:TRUNCATE_AMOUNT] + ' ' +
-            self.ingredient.name[:TRUNCATE_AMOUNT]
+            self.recipe.name[:TRUNCATE_AMOUNT] + ' '
+            + self.ingredient.name[:TRUNCATE_AMOUNT]
         )
 
 
 class UserFavoriteRecipes(models.Model):
     """User favorite recipes relational model."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -168,13 +175,14 @@ class UserFavoriteRecipes(models.Model):
 
     def __str__(self) -> str:
         return (
-            self.user.email[:TRUNCATE_AMOUNT] + ' ' +
-            self.recipe.name[:TRUNCATE_AMOUNT]
+            self.user.email[:TRUNCATE_AMOUNT] + ' '
+            + self.recipe.name[:TRUNCATE_AMOUNT]
         )
 
 
 class UserRecipeShoppingCart(models.Model):
     """User recipes in shopping cart relational model."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -193,6 +201,6 @@ class UserRecipeShoppingCart(models.Model):
 
     def __str__(self) -> str:
         return (
-            self.user.email[:TRUNCATE_AMOUNT] + ' ' +
-            self.recipe.name[:TRUNCATE_AMOUNT]
+            self.user.email[:TRUNCATE_AMOUNT] + ' '
+            + self.recipe.name[:TRUNCATE_AMOUNT]
         )

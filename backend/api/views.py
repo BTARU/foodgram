@@ -8,22 +8,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer, UserCreateSerializer
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (
-    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
-)
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from urlshortner.utils import shorten_url
 
-from recipes.models import (
-    Ingredient, Recipe, Tag, UserFavoriteRecipes, UserRecipeShoppingCart
-)
+from recipes.models import (Ingredient, Recipe, Tag, UserFavoriteRecipes,
+                            UserRecipeShoppingCart)
 from users.models import Subscription
 from .permissions import IsAuthorOrAdmin
-from .serializers import (
-    AvatarSerializer, IngredientSerializer, RecipeCreateSerializer,
-    RecipeReadSerializer, RecipeShortInfoSerializer, TagSerializer,
-    UserSerializer, UserSubscriptionSerializer
-)
+from .serializers import (AvatarSerializer, IngredientSerializer,
+                          RecipeCreateSerializer, RecipeReadSerializer,
+                          RecipeShortInfoSerializer, TagSerializer,
+                          UserSerializer, UserSubscriptionSerializer)
 
 User = get_user_model()
 
