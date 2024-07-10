@@ -1,13 +1,13 @@
-"""Admin panel settings for users app."""
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from .models import CustomUser, Subscription
 
-admin.site.empty_value_display = 'Not set'
+admin.site.empty_value_display = 'Не задано'
 
 
 @admin.register(CustomUser)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(BaseUserAdmin):
     list_display = (
         'email',
         'first_name',

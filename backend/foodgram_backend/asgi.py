@@ -1,4 +1,4 @@
-"""ASGI config for foodgram_backend project."""
+"""ASGI конфигурация для проекта foodgram_backend."""
 
 import os
 

@@ -1,20 +1,15 @@
-"""Admin panel settings for recipes app."""
 from django.contrib import admin
 
-from .models import (Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe,
+from .models import (Ingredient, IngredientRecipe, Recipe, Tag,
                      UserFavoriteRecipes, UserRecipeShoppingCart)
 
 admin.site.empty_value_display = 'Not set'
 
 
-class TagInline(admin.StackedInline):
-    model = TagRecipe
-    extra = 0
-
-
 class IngredientInline(admin.StackedInline):
     model = IngredientRecipe
     extra = 0
+    min_num = 1
 
 
 @admin.register(Ingredient)
@@ -42,12 +37,10 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    def post_in_favorites_count(self, obj):
-        return obj.recipe_favorite.count()
     inlines = (
-        TagInline,
-        IngredientInline
+        IngredientInline,
     )
+    filter_horizontal = ('tags',)
     list_display = (
         'name',
         'author',
@@ -65,6 +58,10 @@ class RecipeAdmin(admin.ModelAdmin):
         'name',
         'author',
     )
+
+    @admin.display(description='Добавлено в избранное')
+    def post_in_favorites_count(self, obj):
+        return obj.recipe_favorite.count()
 
 
 @admin.register(UserFavoriteRecipes)

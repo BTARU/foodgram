@@ -1,4 +1,4 @@
-"""WSGI config for foodgram_backend project."""
+"""WSGI конфигурация для проекта foodgram_backend."""
 
 import os
 
