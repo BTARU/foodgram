@@ -1,192 +1,22 @@
 import csv
 
-from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from djoser.serializers import SetPasswordSerializer, UserCreateSerializer
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
+from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from urlshortner.utils import shorten_url
 
-from recipes.models import (Ingredient, Recipe, Tag, UserFavoriteRecipes,
-                            UserRecipeShoppingCart)
-from users.models import Subscription
 from .filters import RecipeFilter
 from .mixins import PatchModelMixin
+from .models import Recipe, UserFavoriteRecipes, UserRecipeShoppingCart
 from .permissions import IsAuthorOrAdmin
-from .serializers import (IngredientSerializer, RecipeCreateSerializer,
+from .serializers import (RecipeCreateSerializer,
                           RecipeFavoriteSerializer, RecipeReadSerializer,
-                          RecipeShoppingCartSerializer, TagSerializer,
-                          UserAvatarSerializer, UserSerializer,
-                          UserSubscriptionActionSerializer,
-                          UserSubscriptionSerializer)
-
-User = get_user_model()
-
-
-class UserViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet
-):
-    queryset = User.objects.all()
-    permission_classes = (AllowAny,)
-
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return UserCreateSerializer
-        elif self.action == "set_password":
-            return SetPasswordSerializer
-        elif self.action == 'avatar':
-            return UserAvatarSerializer
-        elif self.action == 'subscriptions':
-            return UserSubscriptionSerializer
-        elif self.action in ('subscribe', 'delete_subscribe'):
-            return UserSubscriptionActionSerializer
-        return UserSerializer
-
-    def get_queryset(self):
-        if self.action == 'subscriptions':
-            queryset = self.request.user.subscriptions.all()
-            return [sub.subscribe_target for sub in queryset]
-        return super().get_queryset()
-
-    @action(
-        ['get'],
-        detail=False,
-        permission_classes=[IsAuthenticated]
-    )
-    def me(self, request):
-        serializer = self.get_serializer(request.user)
-        return Response(
-            serializer.data
-        )
-
-    @action(
-        ['post'],
-        detail=False,
-        permission_classes=[IsAuthenticated]
-    )
-    def set_password(self, request):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            request.user.set_password(serializer.data['new_password'])
-            request.user.save()
-            return Response(
-                status=status.HTTP_204_NO_CONTENT
-            )
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    @action(
-        ['put'],
-        detail=False,
-        permission_classes=[IsAuthenticated],
-        url_path='me/avatar'
-    )
-    def avatar(self, request):
-        serializer = self.get_serializer(
-            instance=request.user,
-            data=request.data
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                serializer.data
-            )
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    @avatar.mapping.delete
-    def delete_avatar(self, request):
-        request.user.avatar = None
-        request.user.save()
-        return Response(
-            status=status.HTTP_204_NO_CONTENT
-        )
-
-    @action(
-        ['get'],
-        detail=False,
-        permission_classes=[IsAuthenticated],
-    )
-    def subscriptions(self, request):
-        return super().list(request)
-
-    @action(
-        ['post'],
-        detail=False,
-        permission_classes=[IsAuthenticated],
-        url_path=r'(?P<user_id>\d+)/subscribe'
-    )
-    def subscribe(self, request, user_id):
-        sub_user = get_object_or_404(User, pk=user_id)
-
-        serializer = self.get_serializer(
-            instance=sub_user,
-            data={'id': user_id},
-            context={'request': request}
-        )
-        if serializer.is_valid():
-            Subscription.objects.create(
-                subscriber=request.user,
-                subscribe_target=sub_user
-            )
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    @subscribe.mapping.delete
-    def delete_subscribe(self, request, user_id):
-        sub_user = get_object_or_404(User, pk=user_id)
-
-        serializer = self.get_serializer(
-            instance=sub_user,
-            data={'id': user_id},
-            context={'request': request}
-        )
-        if serializer.is_valid():
-            Subscription.objects.filter(
-                subscriber=request.user,
-                subscribe_target=sub_user
-            ).delete()
-            return Response(
-                status=status.HTTP_204_NO_CONTENT
-            )
-
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-
-class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
-    permission_classes = (AllowAny,)
-    pagination_class = None
-
-
-class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Ingredient.objects.all()
-    serializer_class = IngredientSerializer
-    permission_classes = (AllowAny,)
-    pagination_class = None
+                          RecipeShoppingCartSerializer)
 
 
 class RecipeViewSet(

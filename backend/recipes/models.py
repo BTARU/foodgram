@@ -2,58 +2,11 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MinValueValidator
 
-from foodgram_backend.constants import (INGREDIENT_M_UNIT_LENGTH,
-                                        INGREDIENT_NAME_LENGTH,
-                                        RECIPE_NAME_LENGTH,
-                                        TAG_FIELD_MAX_LENGTH, TRUNCATE_AMOUNT)
+from ingredients.models import Ingredient
+from tags.models import Tag
+from foodgram_backend.constants import RECIPE_NAME_LENGTH, TRUNCATE_AMOUNT
 
 User = get_user_model()
-
-
-class Tag(models.Model):
-    """Тэг для рецептов."""
-
-    name = models.CharField(
-        verbose_name='Название',
-        max_length=TAG_FIELD_MAX_LENGTH
-    )
-    slug = models.SlugField(
-        verbose_name='Идентификатор',
-        max_length=TAG_FIELD_MAX_LENGTH,
-        unique=True,
-        help_text=(
-            'Идентификатор страницы для URL; '
-            'разрешены символы латиницы, цифры, дефис и подчёркивание.'
-        )
-    )
-
-    class Meta:
-        verbose_name = 'Тэг'
-        verbose_name_plural = 'Тэги'
-
-    def __str__(self) -> str:
-        return self.name[:TRUNCATE_AMOUNT]
-
-
-class Ingredient(models.Model):
-    """Ингредиент для рецептов."""
-
-    name = models.CharField(
-        verbose_name='Название',
-        max_length=INGREDIENT_NAME_LENGTH,
-        unique=True
-    )
-    measurement_unit = models.CharField(
-        verbose_name='Единица измерения',
-        max_length=INGREDIENT_M_UNIT_LENGTH
-    )
-
-    class Meta:
-        verbose_name = 'Ингредиент'
-        verbose_name_plural = 'Ингредиенты'
-
-    def __str__(self) -> str:
-        return self.name[:TRUNCATE_AMOUNT]
 
 
 class Recipe(models.Model):

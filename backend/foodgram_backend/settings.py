@@ -35,9 +35,11 @@ INSTALLED_APPS = [
     'django_filters',
     'urlshortner',
 
-    'users.apps.UsersConfig',
+    'tags.apps.TagsConfig',
+    'ingredients.apps.IngredientsConfig',
     'recipes.apps.RecipesConfig',
-    'api.apps.ApiConfig',
+    'users.apps.UsersConfig',
+    'subscriptions.apps.SubscriptionsConfig',
 ]
 
 MIDDLEWARE = [

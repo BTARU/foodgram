@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from .models import (Ingredient, IngredientRecipe, Recipe, Tag,
+from .models import (IngredientRecipe, Recipe,
                      UserFavoriteRecipes, UserRecipeShoppingCart)
 
-admin.site.empty_value_display = 'Not set'
+admin.site.empty_value_display = 'Не задано'
 
 
 class IngredientInline(admin.StackedInline):
@@ -12,27 +12,15 @@ class IngredientInline(admin.StackedInline):
     min_num = 1
 
 
-@admin.register(Ingredient)
-class IngredientAdmin(admin.ModelAdmin):
-    list_display = (
-        'name',
-        'measurement_unit'
-    )
-    search_fields = (
-        'name',
-    )
-
-
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    list_display = (
-        'name',
-        'slug'
-    )
-    search_fields = (
-        'name',
-        'slug'
-    )
+# @admin.register(Ingredient)
+# class IngredientAdmin(admin.ModelAdmin):
+#     list_display = (
+#         'name',
+#         'measurement_unit'
+#     )
+#     search_fields = (
+#         'name',
+#     )
 
 
 @admin.register(Recipe)

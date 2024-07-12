@@ -1,20 +1,20 @@
 [
     {
-        "model": "recipes.tag",
+        "model": "tags.tag",
         "fields": {
             "name": "Обед",
             "slug": "lunch"
         }
     },
     {
-        "model": "recipes.tag",
+        "model": "tags.tag",
         "fields": {
             "name": "Ужин",
             "slug": "dinner"
         }
     },
     {
-        "model": "recipes.tag",
+        "model": "tags.tag",
         "fields": {
             "name": "Завтрак",
             "slug": "breakfast"

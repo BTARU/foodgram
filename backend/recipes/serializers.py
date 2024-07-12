@@ -1,70 +1,19 @@
 from django.contrib.auth import get_user_model
+
 from rest_framework import serializers
 
-from recipes.models import (Ingredient, IngredientRecipe, Recipe, Tag,
-                            UserFavoriteRecipes,
-                            UserRecipeShoppingCart)
-from users.models import Subscription
-from .serializer_fields import Base64ImageField
+from ingredients.serializers import IngredientSerializer
+from tags.serializers import TagSerializer
 from foodgram_backend.constants import RECIPE_NAME_LENGTH
-from .utils import create_recipe_ingredient, add_tags_to_recipe
+from users.serializer_fields import Base64ImageField
+from users.serializers import UserSerializer
+from tags.models import Tag
+from ingredients.models import Ingredient
+from .models import (IngredientRecipe, Recipe,
+                     UserFavoriteRecipes, UserRecipeShoppingCart)
+from .utils import add_tags_to_recipe, create_recipe_ingredient
 
 User = get_user_model()
-
-
-class UserAvatarSerializer(serializers.ModelSerializer):
-    avatar = Base64ImageField()
-
-    class Meta:
-        model = User
-        fields = (
-            'avatar',
-        )
-
-
-class UserSerializer(serializers.ModelSerializer):
-    is_subscribed = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = (
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-            'is_subscribed',
-            'avatar'
-        )
-
-    def get_is_subscribed(self, obj):
-        return (
-            self.context['request'].user.is_authenticated
-            and Subscription.objects.filter(
-                subscriber=self.context['request'].user,
-                subscribe_target=obj
-            ).exists()
-        )
-
-
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = (
-            'id',
-            'name',
-            'slug'
-        )
-
-
-class IngredientSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Ingredient
-        fields = (
-            'id',
-            'name',
-            'measurement_unit'
-        )
 
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
@@ -73,6 +22,22 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IngredientRecipe
         fields = ('id', 'amount')
+
+
+class RecipeShortInfoSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time'
+        )
+
+    def get_image(self, obj):
+        return self.context.get('request').build_absolute_uri(obj.image.url)
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
@@ -232,22 +197,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         )
 
 
-class RecipeShortInfoSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time'
-        )
-
-    def get_image(self, obj):
-        return self.context.get('request').build_absolute_uri(obj.image.url)
-
-
 class RecipeFavoriteSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
 
@@ -312,82 +261,6 @@ class RecipeShoppingCartSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         serializer = RecipeShortInfoSerializer(
-            instance,
-            context={'request': self.context['request']}
-        )
-        return serializer.data
-
-
-class UserSubscriptionSerializer(serializers.ModelSerializer):
-    recipes_count = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
-    is_subscribed = serializers.BooleanField(default=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-            'is_subscribed',
-            'avatar',
-            'recipes',
-            'recipes_count'
-        )
-
-    def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj).count()
-
-    def get_recipes(self, obj):
-        recipes_limit = self.context['request'].query_params.get(
-            'recipes_limit'
-        )
-        queryset = Recipe.objects.filter(author=obj)
-        if recipes_limit:
-            queryset = queryset[:int(recipes_limit)]
-        serializer = RecipeShortInfoSerializer(
-            queryset,
-            context={'request': self.context['request']},
-            many=True
-        )
-        return serializer.data
-
-
-class UserSubscriptionActionSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
-
-    class Meta:
-        model = User
-        fields = (
-            'id',
-        )
-
-    def validate_id(self, value):
-        is_subscribed = Subscription.objects.filter(
-            subscriber=self.context['request'].user,
-            subscribe_target=value
-        ).exists()
-        if self.context['request'].method == 'POST':
-            if self.context['request'].user.id == value:
-                raise serializers.ValidationError(
-                    'Нельзя подписаться на себя.'
-                )
-            if is_subscribed:
-                raise serializers.ValidationError(
-                    'Вы уже подписаны на этого пользователя.'
-                )
-
-        if self.context['request'].method == 'DELETE':
-            if not is_subscribed:
-                raise serializers.ValidationError(
-                    'Нет подписки на этого пользователя.'
-                )
-        return value
-
-    def to_representation(self, instance):
-        serializer = UserSubscriptionSerializer(
             instance,
             context={'request': self.context['request']}
         )

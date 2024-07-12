@@ -1,4 +1,6 @@
-from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag
+from .models import IngredientRecipe, Recipe
+from tags.models import Tag
+from ingredients.models import Ingredient
 
 
 def create_recipe_ingredient(

@@ -1,13 +1,13 @@
 [
     {
-        "model": "recipes.ingredient",
+        "model": "ingredients.ingredient",
         "fields": {
             "name": "абрикосовое варенье",
             "measurement_unit": "г"
         }
     },
     {
-        "model": "recipes.ingredient",
+        "model": "ingredients.ingredient",
         "fields": {
             "name": "апельсины красные",
             "measurement_unit": "шт."
