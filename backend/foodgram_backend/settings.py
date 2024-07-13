@@ -38,8 +38,11 @@ INSTALLED_APPS = [
     'tags.apps.TagsConfig',
     'ingredients.apps.IngredientsConfig',
     'recipes.apps.RecipesConfig',
+    'favorite_recipes.apps.FavoriteRecipesConfig',
+    'shoppingcart_recipes.apps.ShoppingcartRecipesConfig',
+
     'users.apps.UsersConfig',
-    'subscriptions.apps.SubscriptionsConfig',
+    'user_subscriptions.apps.UserSubscriptionsConfig',
 ]
 
 MIDDLEWARE = [

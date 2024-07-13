@@ -1,8 +1,7 @@
 from django.contrib.auth import get_user_model
-
 from rest_framework import serializers
 
-from subscriptions.models import Subscription
+from user_subscriptions.models import Subscription
 from .serializer_fields import Base64ImageField
 
 User = get_user_model()

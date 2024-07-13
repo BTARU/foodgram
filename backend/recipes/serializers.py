@@ -1,19 +1,16 @@
-from django.contrib.auth import get_user_model
-
 from rest_framework import serializers
 
+from favorite_recipes.models import UserFavoriteRecipes
+from ingredients.models import Ingredient
 from ingredients.serializers import IngredientSerializer
+from shoppingcart_recipes.models import UserRecipeShoppingCart
+from tags.models import Tag
 from tags.serializers import TagSerializer
-from foodgram_backend.constants import RECIPE_NAME_LENGTH
 from users.serializer_fields import Base64ImageField
 from users.serializers import UserSerializer
-from tags.models import Tag
-from ingredients.models import Ingredient
-from .models import (IngredientRecipe, Recipe,
-                     UserFavoriteRecipes, UserRecipeShoppingCart)
+from .constants import RECIPE_NAME_LENGTH
+from .models import IngredientRecipe, Recipe
 from .utils import add_tags_to_recipe, create_recipe_ingredient
-
-User = get_user_model()
 
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
@@ -195,73 +192,3 @@ class RecipeReadSerializer(serializers.ModelSerializer):
                 recipe=obj
             ).exists()
         )
-
-
-class RecipeFavoriteSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
-
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-        )
-
-    def validate_id(self, value):
-        favorite_recipe_check = UserFavoriteRecipes.objects.filter(
-            user=self.context['request'].user,
-            recipe=value
-        ).exists()
-        if self.context['request'].method == 'POST':
-            if favorite_recipe_check:
-                raise serializers.ValidationError(
-                    'Рецепт уже в избранном.'
-                )
-
-        if self.context['request'].method == 'DELETE':
-            if not favorite_recipe_check:
-                raise serializers.ValidationError(
-                    'Рецепта нет в избранном.'
-                )
-        return value
-
-    def to_representation(self, instance):
-        serializer = RecipeShortInfoSerializer(
-            instance,
-            context={'request': self.context['request']}
-        )
-        return serializer.data
-
-
-class RecipeShoppingCartSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
-
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-        )
-
-    def validate_id(self, value):
-        shopping_cart_recipe_check = UserRecipeShoppingCart.objects.filter(
-            user=self.context['request'].user,
-            recipe=value
-        ).exists()
-        if self.context['request'].method == 'POST':
-            if shopping_cart_recipe_check:
-                raise serializers.ValidationError(
-                    'Рецепт уже в корзине покупок.'
-                )
-
-        if self.context['request'].method == 'DELETE':
-            if not shopping_cart_recipe_check:
-                raise serializers.ValidationError(
-                    'Рецепта нет в корзине покупок.'
-                )
-        return value
-
-    def to_representation(self, instance):
-        serializer = RecipeShortInfoSerializer(
-            instance,
-            context={'request': self.context['request']}
-        )
-        return serializer.data

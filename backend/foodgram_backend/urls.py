@@ -15,8 +15,8 @@ urlpatterns = [
 
     path('api/', include('tags.urls')),
     path('api/', include('ingredients.urls')),
-    path('api/', include('recipes.urls')),
-    path('api/', include('subscriptions.urls')),
+    path('api/', include('shoppingcart_recipes.urls')),
+    path('api/', include('user_subscriptions.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(

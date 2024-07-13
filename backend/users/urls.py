@@ -1,3 +1,5 @@
+"""Добавляет маршруты для пользователей."""
+
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter as Router
 

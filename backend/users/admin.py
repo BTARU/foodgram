@@ -1,13 +1,13 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-
-# from .models import CustomUser, Subscription
-from .models import CustomUser
 
 admin.site.empty_value_display = 'Не задано'
 
+User = get_user_model()
 
-@admin.register(CustomUser)
+
+@admin.register(User)
 class UserAdmin(BaseUserAdmin):
     list_display = (
         'email',
@@ -18,18 +18,3 @@ class UserAdmin(BaseUserAdmin):
         'email',
         'first_name'
     )
-
-
-# @admin.register(Subscription)
-# class SubscriptionAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'subscriber',
-#         'subscribe_target'
-#     )
-#     list_display_links = (
-#         'subscriber',
-#         'subscribe_target'
-#     )
-#     search_fields = (
-#         'subscriber',
-#     )
