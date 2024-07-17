@@ -6,11 +6,11 @@ COPY package*.json ./
 # COPY package-lock.json package-lock.json
 
 RUN npm install
-# COPY . ./
-COPY . .
+COPY . ./
+# COPY . .
 RUN npm run build
-# CMD cp -r build result_build
+CMD cp -r build result_build
 
 # RUN npm install --global http-server
 
-CMD ["npx", "-y", "http-server", "-p", "9000", "/app/build"]
+# CMD ["npx", "-y", "http-server", "-p", "9000", "/app/build"]

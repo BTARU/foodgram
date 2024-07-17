@@ -7,11 +7,48 @@ Foodgram это сайт, на котором пользователи могу�
 
 ## Запуск проекта
 
-### Клонировать репозиторий и перейти в него в командной строке:
+#### Клонировать репозиторий и перейти в него в командной строке:
 
 ```
 https://github.com/BTARU/foodgram.git
 ```
+
+#### База Данных
+
+Для продакшен версии предполагается подключение БД PostgreSQL. Для этого нужно добавить переменную окружения DB_POSTGRES = True в файл .env в корне проекта и остальные переменные для Postgres согласно переменной DATABASES в settings.py.
+
+#### Как запустить проект(продакшен):
+
+Проект запускается в трех контейнерах Docker, связанных между собой Docker Network.
+
+Для запуска проекта на сервере Ubuntu в контейнерах docker:
+1) Создайте папку foodgram и переместите в нее файл docker-compose.production.yml
+2) В папке foodgram выполните команды в терминале:
+
+```
+sudo docker compose -f docker-compose.production.yml pull
+```
+
+```
+sudo docker compose -f docker-compose.production.yml down
+```
+
+```
+sudo docker compose -f docker-compose.production.yml up -d
+```
+
+Сбор статики и выполнений миграций БД.
+
+```
+sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
+```
+
+```
+sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
+```
+
+```
+sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
 
 ## Технологии
 
