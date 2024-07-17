@@ -22,7 +22,7 @@ services:
   frontend:
     env_file: .env
     image: btaru/foodgram_frontend
-    command: cp -r app/build/. /frontend_static/static/
+    command: cp -r app/result_build/. /frontend_static/static/
     volumes:
       - static:/frontend_static
       # - static:/build
