@@ -23,7 +23,8 @@ services:
     env_file: .env
     image: btaru/foodgram_frontend
     volumes:
-      - static:/frontend_static
+      # - static:/frontend_static
+      - static:/app/result_build
   gateway:
     image: btaru/foodgram_gateway
     env_file: .env
