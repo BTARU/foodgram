@@ -1,3 +1,6 @@
+Хост: http://51.250.30.149/
+Админка:
+
 #  Проект Foodgram
 
 ## Описание
@@ -52,6 +55,56 @@ sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/col
 ```
 
 Также на сервере должен быть запущен прокси сервер для переадресации с порта, выбранного в backend части проекта.
+
+### Как запустить только backend часть проекта локально:
+
+Нужно изменить БД с Postgres на SQLite. Для этого удалите переменную DB_POSTGRES в файле окружения .env
+
+Выполняем команды в терминале:
+
+```
+cd backend
+```
+
+Cоздать и активировать виртуальное окружение:
+
+```
+python3 -m venv env
+```
+
+* Если у вас Linux/macOS
+
+    ```
+    source env/bin/activate
+    ```
+
+* Если у вас windows
+
+    ```
+    source env/scripts/activate
+    ```
+
+```
+python3 -m pip install --upgrade pip
+```
+
+Установить зависимости из файла requirements.txt:
+
+```
+pip install -r requirements.txt
+```
+
+Выполнить миграции:
+
+```
+python3 manage.py migrate
+```
+
+Запустить проект:
+
+```
+python3 manage.py runserver
+```
 
 ## Технологии
 
