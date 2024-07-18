@@ -106,6 +106,23 @@ python3 manage.py migrate
 python3 manage.py runserver
 ```
 
+### Реализованные API:
+
+```
+GET /api/users/ - Получение списка всех пользователей
+GET /api/users/{user_id} - Получение профиля пользователя
+```
+
+#### Регистрация нового пользователя:
+```
+POST /api/users/
+```
+
+#### Получение токена для пользователя:
+```
+POST /api/auth/token/login/
+```
+
 ## Технологии
 
 Backend: Django Rest Framework, запущенный на web-сервере Gunicorn.
