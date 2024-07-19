@@ -22,10 +22,9 @@ services:
   frontend:
     env_file: .env
     image: btaru/foodgram_frontend
-    command: cp -r /app/build/. /frontend_static/
+    # command: cp -r /app/build/. /frontend_static/
     volumes:
       - static:/frontend_static
-      # - static:/app/result_build/
   gateway:
     image: btaru/foodgram_gateway
     env_file: .env
@@ -37,4 +36,3 @@ services:
     volumes:
       - static:/static
       - media:/media
-      # - ../docs/:/usr/share/nginx/html/api/docs/
