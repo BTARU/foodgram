@@ -40,7 +40,6 @@ class RecipeViewSet(
     )
     def get_link(self, request, pk):
         self.get_object()
-        # url = request.build_absolute_uri().rstrip('get-link/')
         url = f'/recipes/{pk}'
         short_url = shorten_url(url, is_permanent=True)
         host = request.get_host()

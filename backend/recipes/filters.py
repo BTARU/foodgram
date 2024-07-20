@@ -7,7 +7,7 @@ from .models import Recipe
 class RecipeFilter(FilterSet):
     """Фильтрует запросы к рецептам по тэгам, корзине покупок, избранному."""
 
-    tags = AllValuesMultipleFilter(field_name='tags__slug', conjoined=True)
+    tags = AllValuesMultipleFilter(field_name='tags__slug', conjoined=False)
     is_in_shopping_cart = Filter(method='filter_shopping_cart')
     is_favorited = Filter(method='filter_is_favorited')
 
