@@ -1,5 +1,5 @@
 Хост: https://foodgram-bta.sytes.net/
-Админка:
+Админка: andrey@mail.ru andreydjango
 
 #  Проект Foodgram
 

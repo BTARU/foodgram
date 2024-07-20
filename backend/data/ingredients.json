@@ -68,5 +68,12 @@
             "name": "гречневая крупа",
             "measurement_unit": "г"
         }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "пельмени",
+            "measurement_unit": "г"
+        }
     }
 ]
