@@ -59,7 +59,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         if Recipe.objects.filter(
             name=value,
             author=self.context['request'].user
-        ).exists():
+        ).exists() and self.context['request'].method == 'POST':
             raise serializers.ValidationError(
                 'У вас уже есть рецепт с таким названием.'
             )
