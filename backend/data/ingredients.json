@@ -75,5 +75,19 @@
             "name": "пельмени",
             "measurement_unit": "г"
         }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "овсяные зерна",
+            "measurement_unit": "г"
+        }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "молоко",
+            "measurement_unit": "мл"
+        }
     }
 ]
