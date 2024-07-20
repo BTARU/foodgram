@@ -1,4 +1,4 @@
-Хост: http://51.250.30.149/
+Хост: https://foodgram-bta.sytes.net/
 Админка:
 
 #  Проект Foodgram
@@ -106,7 +106,8 @@ python3 manage.py migrate
 python3 manage.py runserver
 ```
 
-### Реализованные API:
+## Реализованные API:
+Примеры запросов:
 
 ```
 GET /api/users/ - Получение списка всех пользователей
@@ -122,6 +123,11 @@ POST /api/users/
 ```
 POST /api/auth/token/login/
 ```
+
+### Полная спецификация API:
+
+На локальной машине, находясь в папке infra, выполните команду docker-compose up.
+После запуска контейнеров перейдите по адресу: http://localhost/api/docs/
 
 ## Технологии
 

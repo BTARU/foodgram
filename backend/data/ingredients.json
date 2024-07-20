@@ -10,7 +10,63 @@
         "model": "ingredients.ingredient",
         "fields": {
             "name": "апельсины красные",
-            "measurement_unit": "шт."
+            "measurement_unit": "шт"
+        }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "бараний фарш",
+            "measurement_unit": "г"
+        }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "баранина",
+            "measurement_unit": "г"
+        }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "ветчина варено-копченая",
+            "measurement_unit": "г"
+        }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "говядина",
+            "measurement_unit": "г"
+        }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "грушевый сок",
+            "measurement_unit": "мл"
+        }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "груши",
+            "measurement_unit": "г"
+        }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "арахис",
+            "measurement_unit": "г"
+        }
+    },
+    {
+        "model": "ingredients.ingredient",
+        "fields": {
+            "name": "гречневая крупа",
+            "measurement_unit": "г"
         }
     }
 ]

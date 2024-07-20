@@ -19,5 +19,12 @@
             "name": "Завтрак",
             "slug": "breakfast"
         }
+    },
+    {
+        "model": "tags.tag",
+        "fields": {
+            "name": "Перекус",
+            "slug": "snack"
+        }
     }
 ]
