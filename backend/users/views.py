@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from djoser.serializers import SetPasswordSerializer, UserCreateSerializer
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -18,6 +19,7 @@ class UserViewSet(
 ):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
+    pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
         if self.action == 'create':
