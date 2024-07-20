@@ -1,7 +1,7 @@
 """Добавляет маршруты для рецептов и добавление в корзину покупок."""
 
 from django.urls import include, path
-from rest_framework.routers import DefaultRouter as Router
+from rest_framework.routers import SimpleRouter as Router
 
 from .views import RecipeShoppingCartViewSet
 
