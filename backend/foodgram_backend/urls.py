@@ -18,6 +18,7 @@ urlpatterns = [
     path('api/', include('shoppingcart_recipes.urls')),
     path('api/', include('user_subscriptions.urls')),
 ]
+
 if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT

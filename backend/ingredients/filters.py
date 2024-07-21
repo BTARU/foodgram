@@ -13,4 +13,7 @@ class IngredientFilter(FilterSet):
         fields = ['name']
 
     def filter_name(self, queryset, name, value):
-        return queryset.filter(name__contains=value)
+        return (
+            queryset.filter(name__istartswith=value)
+            or queryset.filter(name__icontains=value)
+        )
