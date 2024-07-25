@@ -1,8 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import (LimitOffsetPagination,
-                                       PageNumberPagination)
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from urlshortner.utils import shorten_url
@@ -12,10 +10,6 @@ from .mixins import PatchModelMixin
 from .models import Recipe
 from .permissions import IsAuthorOrAdmin
 from .serializers import RecipeCreateSerializer, RecipeReadSerializer
-
-
-class CustomPagination(PageNumberPagination, LimitOffsetPagination):
-    pass
 
 
 class RecipeViewSet(
@@ -30,7 +24,6 @@ class RecipeViewSet(
     filter_backends = (DjangoFilterBackend,)
     queryset = Recipe.objects.all()
     filterset_class = RecipeFilter
-    pagination_class = CustomPagination  # ?????
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):
