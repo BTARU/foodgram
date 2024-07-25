@@ -5,7 +5,8 @@ from rest_framework.response import Response
 
 from users.views import UserViewSet
 from .models import Subscription
-from .serializers import (UserSubscriptionActionSerializer,
+from .serializers import (UserSubscriptionCreationSerializer,
+                          UserSubscriptionDeleteSerializer,
                           UserSubscriptionSerializer)
 
 
@@ -15,8 +16,10 @@ class UserSubscriptionViewSet(UserViewSet):
     def get_serializer_class(self):
         if self.action == 'subscriptions':
             return UserSubscriptionSerializer
-        elif self.action in ('subscribe', 'delete_subscribe'):
-            return UserSubscriptionActionSerializer
+        elif self.action == 'subscribe':
+            return UserSubscriptionCreationSerializer
+        elif self.action == 'delete_subscribe':
+            return UserSubscriptionDeleteSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):

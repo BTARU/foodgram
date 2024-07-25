@@ -2,7 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
-from .constants import TRUNCATE_AMOUNT, USER_EMAIL_LENGTH, USER_NAME_LENGTH
+from foodgram_backend.constants import (TRUNCATE_AMOUNT, USER_EMAIL_LENGTH,
+                                        USER_NAME_LENGTH)
 from .validators import validate_username
 
 

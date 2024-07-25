@@ -8,15 +8,18 @@ from rest_framework.response import Response
 
 from favorite_recipes.views import FavoriteRecipeViewSet
 from .models import UserRecipeShoppingCart
-from .serializers import RecipeShoppingCartSerializer
+from .serializers import (RecipeShoppingCartCreateSerializer,
+                          RecipeShoppingCartDeleteSerializer)
 
 
 class RecipeShoppingCartViewSet(FavoriteRecipeViewSet):
     """Расширяет вьюсет рецептов, позволяя добавлять их в корзину покупок."""
 
     def get_serializer_class(self):
-        if self.action in ('shopping_cart', 'delete_shopping_cart'):
-            return RecipeShoppingCartSerializer
+        if self.action == 'shopping_cart':
+            return RecipeShoppingCartCreateSerializer
+        elif self.action == 'delete_shopping_cart':
+            return RecipeShoppingCartDeleteSerializer
         return super().get_serializer_class()
 
     @action(

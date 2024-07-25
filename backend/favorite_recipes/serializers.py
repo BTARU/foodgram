@@ -10,27 +10,7 @@ class FavoriteRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = (
-            'id',
-        )
-
-    def validate_id(self, value):
-        favorite_recipe_check = UserFavoriteRecipes.objects.filter(
-            user=self.context['request'].user,
-            recipe=value
-        ).exists()
-        if self.context['request'].method == 'POST':
-            if favorite_recipe_check:
-                raise serializers.ValidationError(
-                    'Рецепт уже в избранном.'
-                )
-
-        if self.context['request'].method == 'DELETE':
-            if not favorite_recipe_check:
-                raise serializers.ValidationError(
-                    'Рецепта нет в избранном.'
-                )
-        return value
+        fields = ('id',)
 
     def to_representation(self, instance):
         serializer = RecipeShortInfoSerializer(
@@ -38,3 +18,27 @@ class FavoriteRecipeSerializer(serializers.ModelSerializer):
             context={'request': self.context['request']}
         )
         return serializer.data
+
+
+class FavoriteRecipeCreateSerializer(FavoriteRecipeSerializer):
+    def validate_id(self, value):
+        if UserFavoriteRecipes.objects.filter(
+            user=self.context['request'].user,
+            recipe=value
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже в избранном.'
+            )
+        return value
+
+
+class FavoriteRecipeDeleteSerializer(FavoriteRecipeSerializer):
+    def validate_id(self, value):
+        if not UserFavoriteRecipes.objects.filter(
+            user=self.context['request'].user,
+            recipe=value
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепта нет в избранном.'
+            )
+        return value

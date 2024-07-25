@@ -13,31 +13,7 @@ class UserSubscriptionActionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'id',
-        )
-
-    def validate_id(self, value):
-        is_subscribed = Subscription.objects.filter(
-            subscriber=self.context['request'].user,
-            subscribe_target=value
-        ).exists()
-        if self.context['request'].method == 'POST':
-            if self.context['request'].user.id == value:
-                raise serializers.ValidationError(
-                    'Нельзя подписаться на себя.'
-                )
-            if is_subscribed:
-                raise serializers.ValidationError(
-                    'Вы уже подписаны на этого пользователя.'
-                )
-
-        if self.context['request'].method == 'DELETE':
-            if not is_subscribed:
-                raise serializers.ValidationError(
-                    'Нет подписки на этого пользователя.'
-                )
-        return value
+        fields = ('id',)
 
     def to_representation(self, instance):
         serializer = UserSubscriptionSerializer(
@@ -45,6 +21,34 @@ class UserSubscriptionActionSerializer(serializers.ModelSerializer):
             context={'request': self.context['request']}
         )
         return serializer.data
+
+
+class UserSubscriptionCreationSerializer(UserSubscriptionActionSerializer):
+    def validate_id(self, value):
+        if self.context['request'].user.id == value:
+            raise serializers.ValidationError(
+                'Нельзя подписаться на себя.'
+            )
+        if Subscription.objects.filter(
+            subscriber=self.context['request'].user,
+            subscribe_target=value
+        ).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого пользователя.'
+            )
+        return value
+
+
+class UserSubscriptionDeleteSerializer(UserSubscriptionActionSerializer):
+    def validate_id(self, value):
+        if not Subscription.objects.filter(
+            subscriber=self.context['request'].user,
+            subscribe_target=value
+        ).exists():
+            raise serializers.ValidationError(
+                'Нет подписки на этого пользователя.'
+            )
+        return value
 
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):

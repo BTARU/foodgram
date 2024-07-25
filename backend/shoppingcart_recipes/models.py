@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 
 from recipes.models import Recipe
-from .constants import TRUNCATE_AMOUNT
+from foodgram_backend.constants import TRUNCATE_AMOUNT
 
 User = get_user_model()
 
@@ -19,7 +19,8 @@ class UserRecipeShoppingCart(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        verbose_name='Рецепт'
+        verbose_name='Рецепт',
+        related_name='shopping_cart_recipes'
     )
 
     class Meta:

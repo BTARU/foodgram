@@ -1,6 +1,6 @@
 from django.db import models
 
-from .constants import TRUNCATE_AMOUNT, TAG_FIELD_MAX_LENGTH
+from foodgram_backend.constants import TRUNCATE_AMOUNT, TAG_FIELD_MAX_LENGTH
 
 
 class Tag(models.Model):

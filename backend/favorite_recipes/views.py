@@ -5,15 +5,18 @@ from rest_framework.response import Response
 
 from recipes.views import RecipeViewSet
 from .models import UserFavoriteRecipes
-from .serializers import FavoriteRecipeSerializer
+from .serializers import (FavoriteRecipeCreateSerializer,
+                          FavoriteRecipeDeleteSerializer)
 
 
 class FavoriteRecipeViewSet(RecipeViewSet):
     """Расширяет вьюсет рецептов, позволяя добавлять рецепты в избранное."""
 
     def get_serializer_class(self):
-        if self.action in ('favorite', 'delete_favorite'):
-            return FavoriteRecipeSerializer
+        if self.action == 'favorite':
+            return FavoriteRecipeCreateSerializer
+        elif self.action == 'delete_favorite':
+            return FavoriteRecipeDeleteSerializer
         return super().get_serializer_class()
 
     @action(

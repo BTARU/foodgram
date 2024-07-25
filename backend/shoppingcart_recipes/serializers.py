@@ -10,27 +10,7 @@ class RecipeShoppingCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = (
-            'id',
-        )
-
-    def validate_id(self, value):
-        shopping_cart_recipe_check = UserRecipeShoppingCart.objects.filter(
-            user=self.context['request'].user,
-            recipe=value
-        ).exists()
-        if self.context['request'].method == 'POST':
-            if shopping_cart_recipe_check:
-                raise serializers.ValidationError(
-                    'Рецепт уже в корзине покупок.'
-                )
-
-        if self.context['request'].method == 'DELETE':
-            if not shopping_cart_recipe_check:
-                raise serializers.ValidationError(
-                    'Рецепта нет в корзине покупок.'
-                )
-        return value
+        fields = ('id',)
 
     def to_representation(self, instance):
         serializer = RecipeShortInfoSerializer(
@@ -38,3 +18,27 @@ class RecipeShoppingCartSerializer(serializers.ModelSerializer):
             context={'request': self.context['request']}
         )
         return serializer.data
+
+
+class RecipeShoppingCartCreateSerializer(RecipeShoppingCartSerializer):
+    def validate_id(self, value):
+        if UserRecipeShoppingCart.objects.filter(
+            user=self.context['request'].user,
+            recipe=value
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже в корзине покупок.'
+            )
+        return value
+
+
+class RecipeShoppingCartDeleteSerializer(RecipeShoppingCartSerializer):
+    def validate_id(self, value):
+        if not UserRecipeShoppingCart.objects.filter(
+            user=self.context['request'].user,
+            recipe=value
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепта нет в корзине покупок.'
+            )
+        return value

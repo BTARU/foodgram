@@ -1,7 +1,8 @@
 from django.db import models
 
-from .constants import (INGREDIENT_M_UNIT_LENGTH, INGREDIENT_NAME_LENGTH,
-                        TRUNCATE_AMOUNT)
+from foodgram_backend.constants import (INGREDIENT_M_UNIT_LENGTH,
+                                        INGREDIENT_NAME_LENGTH,
+                                        TRUNCATE_AMOUNT)
 
 
 class Ingredient(models.Model):

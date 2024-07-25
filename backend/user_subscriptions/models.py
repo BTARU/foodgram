@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .constants import TRUNCATE_AMOUNT
+from foodgram_backend.constants import TRUNCATE_AMOUNT
 
 User = get_user_model()
 

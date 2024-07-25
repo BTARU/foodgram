@@ -1,14 +1,15 @@
 from rest_framework import serializers
+# from rest_framework.validators import UniqueTogetherValidator
 
 from favorite_recipes.models import UserFavoriteRecipes
+from foodgram_backend.constants import RECIPE_NAME_LENGTH
 from ingredients.models import Ingredient
 from ingredients.serializers import IngredientSerializer
 from shoppingcart_recipes.models import UserRecipeShoppingCart
 from tags.models import Tag
 from tags.serializers import TagSerializer
-from users.serializer_fields import Base64ImageField
 from users.serializers import UserSerializer
-from .constants import RECIPE_NAME_LENGTH
+from utils.serializer_fields import Base64ImageField
 from .models import IngredientRecipe, Recipe
 from .utils import add_tags_to_recipe, create_recipe_ingredient
 
@@ -52,8 +53,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             'image',
             'name',
             'text',
-            'cooking_time'
+            'cooking_time',
         )
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=Recipe.objects.all(),
+        #         fields=['name', 'author'],
+        #         message='У вас уже есть рецепт с таким названием.'
+        #     )
+        # ]
 
     def validate_name(self, value):
         if Recipe.objects.filter(
@@ -120,7 +128,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         create_recipe_ingredient(recipe, ingredients_data)
-
         add_tags_to_recipe(recipe, tags_data)
         return recipe
 

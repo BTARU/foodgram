@@ -1,17 +1,36 @@
-version: '3.3'
-services:
+version: '3'
 
+volumes:
+  pg_data:
+  static:
+  media:
+
+services:
+  db:
+    image: postgres:13
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+  backend:
+    image: btaru/kittygram_backend
+    env_file: .env
+    depends_on:
+      - db
+    volumes:
+      - static:/backend_static
+      - media:/app/media
   frontend:
-    container_name: foodgram-front
-    build: ../frontend
+    env_file: .env
+    image: btaru/kittygram_frontend
     volumes:
-      - ../frontend/:/app/result_build/
-  nginx:
-    container_name: foodgram-proxy
-    image: nginx:1.25.4-alpine
+      - static:/frontend_static
+  gateway:
+    image: btaru/kittygram_gateway
+    env_file: .env
+    depends_on:
+      - backend
     ports:
-      - "80:80"
+      - 9000:80
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
+      - static:/static
+      - media:/media
