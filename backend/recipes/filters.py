@@ -17,7 +17,7 @@ class RecipeFilter(FilterSet):
 
     def filter_shopping_cart(self, queryset, name, value):
         user = self.request.user
-        if user.is_authenticated:
+        if user.is_authenticated and value == 1:
             recipes_in_shop_cart = user.user_shopping_cart_recipes.all()
             for user_recipe_in_shop_cart in recipes_in_shop_cart:
                 queryset = queryset.filter(
@@ -27,7 +27,7 @@ class RecipeFilter(FilterSet):
 
     def filter_is_favorited(self, queryset, name, value):
         user = self.request.user
-        if user.is_authenticated:
+        if user.is_authenticated and value == 1:
             favorite_recipes = user.user_favorite_recipes.all()
             for user_favorite_recipe in favorite_recipes:
                 queryset = queryset.filter(
