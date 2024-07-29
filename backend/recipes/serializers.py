@@ -1,5 +1,4 @@
 from rest_framework import serializers
-# from rest_framework.validators import UniqueTogetherValidator
 
 from favorite_recipes.models import UserFavoriteRecipes
 from foodgram_backend.constants import RECIPE_NAME_LENGTH
@@ -55,13 +54,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
-        # validators = [
-        #     UniqueTogetherValidator(
-        #         queryset=Recipe.objects.all(),
-        #         fields=['name', 'author'],
-        #         message='У вас уже есть рецепт с таким названием.'
-        #     )
-        # ]
 
     def validate_name(self, value):
         if Recipe.objects.filter(

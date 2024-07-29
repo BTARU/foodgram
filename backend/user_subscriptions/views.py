@@ -50,19 +50,14 @@ class UserSubscriptionViewSet(UserViewSet):
             data={'id': pk},
             context={'request': request}
         )
-        if serializer.is_valid():
-            Subscription.objects.create(
-                subscriber=request.user,
-                subscribe_target=sub_user
-            )
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-
+        serializer.is_valid(raise_exception=True)
+        Subscription.objects.create(
+            subscriber=request.user,
+            subscribe_target=sub_user
+        )
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            serializer.data,
+            status=status.HTTP_201_CREATED
         )
 
     @subscribe.mapping.delete
@@ -74,16 +69,11 @@ class UserSubscriptionViewSet(UserViewSet):
             data={'id': pk},
             context={'request': request}
         )
-        if serializer.is_valid():
-            Subscription.objects.filter(
-                subscriber=request.user,
-                subscribe_target=sub_user
-            ).delete()
-            return Response(
-                status=status.HTTP_204_NO_CONTENT
-            )
-
+        serializer.is_valid(raise_exception=True)
+        Subscription.objects.filter(
+            subscriber=request.user,
+            subscribe_target=sub_user
+        ).delete()
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_204_NO_CONTENT
         )

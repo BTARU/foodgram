@@ -50,7 +50,7 @@ class UserViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        request.user.set_password(serializer.data['new_password'])
+        request.user.set_password(serializer.validated_data['new_password'])
         request.user.save()
         return Response(
             status=status.HTTP_204_NO_CONTENT
@@ -67,14 +67,10 @@ class UserViewSet(
             instance=request.user,
             data=request.data
         )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                serializer.data
-            )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            serializer.validated_data
         )
 
     @avatar.mapping.delete

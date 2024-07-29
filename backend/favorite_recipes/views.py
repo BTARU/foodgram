@@ -33,19 +33,14 @@ class FavoriteRecipeViewSet(RecipeViewSet):
             data={'id': pk},
             context={'request': request}
         )
-        if serializer.is_valid():
-            UserFavoriteRecipes.objects.create(
-                user=request.user,
-                recipe=recipe
-            )
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-
+        serializer.is_valid(raise_exception=True)
+        UserFavoriteRecipes.objects.create(
+            user=request.user,
+            recipe=recipe
+        )
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            serializer.data,
+            status=status.HTTP_201_CREATED
         )
 
     @favorite.mapping.delete
@@ -57,16 +52,11 @@ class FavoriteRecipeViewSet(RecipeViewSet):
             data={'id': pk},
             context={'request': request}
         )
-        if serializer.is_valid():
-            UserFavoriteRecipes.objects.filter(
-                user=request.user,
-                recipe=recipe
-            ).delete()
-            return Response(
-                status=status.HTTP_204_NO_CONTENT
-            )
-
+        serializer.is_valid(raise_exception=True)
+        UserFavoriteRecipes.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).delete()
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_204_NO_CONTENT
         )
