@@ -39,6 +39,7 @@ class RecipeViewSet(
         url_path=r'(?P<pk>\d+)/get-link'
     )
     def get_link(self, request, pk):
+        """Создает короткую ссылку на рецепт."""
         self.get_object()
         url = f'/recipes/{pk}'
         short_url = shorten_url(url, is_permanent=True)

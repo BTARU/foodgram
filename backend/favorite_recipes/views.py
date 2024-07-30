@@ -26,6 +26,7 @@ class FavoriteRecipeViewSet(RecipeViewSet):
         permission_classes=[IsAuthenticated],
     )
     def favorite(self, request, pk):
+        """Добавить рецепт в избранное."""
         recipe = self.get_object()
 
         serializer = self.get_serializer(
@@ -45,6 +46,7 @@ class FavoriteRecipeViewSet(RecipeViewSet):
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
+        """Удалить рецепт из избранного."""
         recipe = self.get_object()
 
         serializer = self.get_serializer(

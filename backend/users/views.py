@@ -36,6 +36,7 @@ class UserViewSet(
         permission_classes=[IsAuthenticated]
     )
     def me(self, request):
+        """Выводит пользователю его профиль."""
         serializer = self.get_serializer(request.user)
         return Response(
             serializer.data
@@ -47,6 +48,7 @@ class UserViewSet(
         permission_classes=[IsAuthenticated]
     )
     def set_password(self, request):
+        """Изменить пароль пользователя."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -63,6 +65,7 @@ class UserViewSet(
         url_path='me/avatar'
     )
     def avatar(self, request):
+        """Установить фото аватара профилю пользователя."""
         serializer = self.get_serializer(
             instance=request.user,
             data=request.data
@@ -75,6 +78,7 @@ class UserViewSet(
 
     @avatar.mapping.delete
     def delete_avatar(self, request):
+        """Удалить фото аватара профиля пользователя."""
         request.user.avatar = None
         request.user.save()
         return Response(

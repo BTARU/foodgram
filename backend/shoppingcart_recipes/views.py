@@ -1,11 +1,13 @@
 import csv
 
 from django.http import HttpResponse
+from django.db.models import Sum
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from recipes.models import IngredientRecipe
 from favorite_recipes.views import FavoriteRecipeViewSet
 from .models import UserRecipeShoppingCart
 from .serializers import (RecipeShoppingCartCreateSerializer,
@@ -29,6 +31,7 @@ class RecipeShoppingCartViewSet(FavoriteRecipeViewSet):
         permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, pk):
+        """Добавить рецепт в корзину покупок."""
         recipe = self.get_object()
 
         serializer = self.get_serializer(
@@ -48,6 +51,7 @@ class RecipeShoppingCartViewSet(FavoriteRecipeViewSet):
 
     @shopping_cart.mapping.delete
     def delete_shopping_cart(self, request, pk):
+        """Удалить рецепт из корзины покупок."""
         recipe = self.get_object()
 
         serializer = self.get_serializer(
@@ -70,10 +74,14 @@ class RecipeShoppingCartViewSet(FavoriteRecipeViewSet):
         permission_classes=[IsAuthenticated],
     )
     def download_shopping_cart(self, request):
-        queryset = request.user.user_shopping_cart_recipes.all()
-        queryset = [user_shop_cart.recipe for user_shop_cart in queryset]
-        ingredient_list = {}
-        serializer = self.get_serializer(queryset, many=True)
+        """Скачать список ингредиентов из корзины покупок."""
+        ingredient_list = IngredientRecipe.objects.filter(
+            recipe__shopping_cart_recipes__user=request.user
+        ).values_list(
+            'ingredient__name',
+            'ingredient__measurement_unit',
+        ).annotate(Sum('amount'))
+
         response = HttpResponse(
             content_type='text/csv',
             headers={
@@ -82,20 +90,7 @@ class RecipeShoppingCartViewSet(FavoriteRecipeViewSet):
             },
         )
 
-        for recipe in serializer.data:
-            for ingredient in recipe.get('ingredients'):
-                ingredient_name = ingredient.get('name')
-                if ingredient_name not in ingredient_list:
-                    ingredient_list[ingredient_name] = [
-                        ingredient.get('measurement_unit'),
-                        ingredient.get('amount')
-                    ]
-                else:
-                    ingredient_list[ingredient_name][1] += ingredient.get(
-                        'amount'
-                    )
-
         writer = csv.writer(response)
-        for name, values in ingredient_list.items():
-            writer.writerow((name, values[0], values[1]))
+        for name, value1, value2 in ingredient_list:
+            writer.writerow((name, value1, value2))
         return response

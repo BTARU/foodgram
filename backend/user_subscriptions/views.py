@@ -34,6 +34,7 @@ class UserSubscriptionViewSet(UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def subscriptions(self, request):
+        """Вывести список подписок пользователя."""
         return super().list(request)
 
     @action(
@@ -43,6 +44,7 @@ class UserSubscriptionViewSet(UserViewSet):
         url_path=r'(?P<pk>\d+)/subscribe'
     )
     def subscribe(self, request, pk):
+        """Подписаться на пользователя."""
         sub_user = self.get_object()
 
         serializer = self.get_serializer(
@@ -62,6 +64,7 @@ class UserSubscriptionViewSet(UserViewSet):
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, pk):
+        """Отписаться от пользователя."""
         sub_user = self.get_object()
 
         serializer = self.get_serializer(
