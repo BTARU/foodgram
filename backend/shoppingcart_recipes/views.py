@@ -91,6 +91,6 @@ class RecipeShoppingCartViewSet(FavoriteRecipeViewSet):
         )
 
         writer = csv.writer(response)
-        for name, value1, value2 in ingredient_list:
-            writer.writerow((name, value1, value2))
+        for name, measurement_unit, sum in ingredient_list:
+            writer.writerow((name, measurement_unit, sum))
         return response
